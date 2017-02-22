@@ -15,7 +15,6 @@ def load_poems(filename):
             lines_words.append(words)
     return lines_words
 
-# TODO(jg):
 def assign_ids(words):
     '''
     Assign each word a unique id [0->#(unique-words - 1)]
@@ -30,6 +29,21 @@ def assign_ids(words):
             curr_id += 1
     return word_to_id
 
+def lines_words_to_lines_ids(line_words, word_to_id):
+    '''
+    input:
+      line_words: list of lists [line_idx][word_idx] = 'word'
+      word_to_id: dictionary word_to_id[word] = id
+    output: list of lists [line_idx][word_idx] = id
+    '''
+    id_data = []
+    for words in line_words:
+        ids = []
+        for word in words:
+            ids.append(word_to_id[word])
+        id_data.append(ids)
+    return id_data
+        
 # TODO(jg):
 def make_unsupervised_model(n_states):
     '''
@@ -46,8 +60,14 @@ if __name__ == "__main__":
     # print lines_words[:4]
     words = [word for line in lines_words for word in line]
     word_to_id = assign_ids(words)
-    print ("*************************************")
-    print ("word_to_id:*************************")
-    print ("*************************************")
+    # print ("*************************************")
+    # print ("word_to_id:*************************")
+    # print ("*************************************")
     #print word_to_id
-    print ("len(word_to_id): " + str(len(word_to_id)))
+    #print ("len(word_to_id): " + str(len(word_to_id)))
+    # lines_ids = lines_words_to_lines_ids(lines_words, word_to_id)
+    # print ("*************************************")
+    # print ("lines_ids:*************************")
+    # print ("*************************************")
+    # print lines_ids[100:106]
+
