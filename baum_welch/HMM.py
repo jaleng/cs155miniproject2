@@ -300,6 +300,46 @@ class HiddenMarkovModel:
 
         return emission
 
+    def generate_emission_list(self, M):
+        '''
+        Generates an emission of length M, assuming that the starting state
+        is chosen uniformly at random. 
+
+        Arguments:
+            M:          Length of the emission to generate.
+
+        Returns:
+            emission:   The randomly generated emission as a list.
+        '''
+
+        emission = []
+        state = random.choice(range(self.L))
+
+        for t in range(M):
+            # Sample next observation.
+            rand_var = random.uniform(0, 1)
+            next_obs = 0
+
+            while rand_var > 0:
+                rand_var -= self.O[state][next_obs]
+                next_obs += 1
+
+            next_obs -= 1
+            emission.append(next_obs)
+
+            # Sample next state.
+            rand_var = random.uniform(0, 1)
+            next_state = 0
+
+            while rand_var > 0:
+                rand_var -= self.A[state][next_state]
+                next_state += 1
+
+            next_state -= 1
+            state = next_state
+
+        return emission
+
 def unsupervised_HMM(X, n_states, n_iters):
     '''
     Helper function to train an unsupervised HMM. The function determines the

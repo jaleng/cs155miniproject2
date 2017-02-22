@@ -46,19 +46,35 @@ def lines_words_to_lines_ids(line_words, word_to_id):
         id_data.append(ids)
     return id_data
         
-# TODO(jg):
 def make_unsupervised_model(filename, n_states, n_iters):
     '''
     Do unsupervised learning
-    returns: an HMM model
+    returns: an HMM model, dictionary word->id, dictionary id->word
     '''
     lines_words = load_poems(filename)
     words = [word for line in lines_words for word in line]
     word_to_id = assign_ids(words)
+    id_to_word = {}
+    for key, value in word_to_id.items():
+        id_to_word[value] = key
+    # DEBUG
+    print ("*************************************")
+    print ("id_to_word:*************************")
+    print ("*************************************")
+    print id_to_word
     lines_ids = lines_words_to_lines_ids(lines_words, word_to_id)
     hmm = HMM.unsupervised_HMM(lines_ids, n_states, n_iters)
-    return hmm
+    return (hmm, word_to_id, id_to_word)
 
+def generate_poem(model, ids_to_words, words_per_line, n_lines):
+    lines = []
+    for line_idx in range(n_lines):
+        line_ids = model.generate_emission_list(words_per_line)
+        line_words = [ids_to_words[id] for id in line_ids]
+        lines.append(" ".join(line_words))
+    return lines
+
+    
 def test_unsupervised_py():
     lines_words = load_poems("data/shakespeare.txt")
     # print ("*************************************")
@@ -79,12 +95,18 @@ def test_unsupervised_py():
     # print lines_ids[100:106]
     
 if __name__ == "__main__":
-    model = (
+    model, word_to_id, id_to_word = (
     read_make_pkl("saved_objs/um_shakespeare_nstates25_niters10.pkl",
                   lambda: make_unsupervised_model
                             ("data/shakespeare.txt",
                              25,
                              10))
         )
-    
+    poem = generate_poem(model, id_to_word, words_per_line=8, n_lines=14)
+
+    print ("*************************************")
+    print ("Generated Poem:**********************")
+    print ("*************************************")
+    for line in poem:
+        print line
 
