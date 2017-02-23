@@ -2,6 +2,7 @@
 from baum_welch import HMM
 from pkl_help import *
 from preprocessing import cleanWord
+import sys
 
 def load_poems(filename):
     '''
@@ -96,12 +97,20 @@ def test_unsupervised_py():
     # print lines_ids[100:106]
     
 if __name__ == "__main__":
+    if (len(sys.argv) != 4):
+        print(len(sys.argv))
+        print("usage: python unsupervised.py save_file n_states n_iters")
+        print("ex:    python unsupervised.py um_all_nstates10_niters1000.pkl 10 1000")
+        sys.exit(1)
+    save_file = sys.argv[1]
+    n_states = int(sys.argv[2])
+    n_iters = int(sys.argv[3])
     model, word_to_id, id_to_word = (
-    read_make_pkl("saved_objs/um_all_nstates20_niters1000.pkl",
+    read_make_pkl("saved_objs/" + save_file,
                   lambda: make_unsupervised_model
                             ("data/shakespeare_plus_spenser.txt",
-                             n_states=20,
-                             n_iters=1000))
+                             n_states=n_states,
+                             n_iters=n_iters))
         )
     poem = generate_poem(model, id_to_word, words_per_line=8, n_lines=14)
 
