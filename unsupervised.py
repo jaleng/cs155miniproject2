@@ -1,6 +1,7 @@
 # unsupervised.py
 from baum_welch import HMM
 from pkl_help import *
+from preprocessing import cleanWord
 
 def load_poems(filename):
     '''
@@ -14,7 +15,7 @@ def load_poems(filename):
             words = line.split()
             if len(words) <= 1:
                 continue
-            lines_words.append(words)
+            lines_words.append(map(cleanWord, words))
     return lines_words
 
 def assign_ids(words):
@@ -96,11 +97,11 @@ def test_unsupervised_py():
     
 if __name__ == "__main__":
     model, word_to_id, id_to_word = (
-    read_make_pkl("saved_objs/um_shakespeare_nstates25_niters10.pkl",
+    read_make_pkl("saved_objs/um_all_nstates20_niters1000.pkl",
                   lambda: make_unsupervised_model
-                            ("data/shakespeare.txt",
-                             25,
-                             10))
+                            ("data/shakespeare_plus_spenser.txt",
+                             n_states=20,
+                             n_iters=1000))
         )
     poem = generate_poem(model, id_to_word, words_per_line=8, n_lines=14)
 

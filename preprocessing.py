@@ -10,6 +10,19 @@ cluster_dictionary = {}
 prondict = cmudict.dict()
 not_in_dict = []
 
+def cleanWord(word):
+    '''
+    Removes punctuation from the word given in the parameter, and returns the lowercase
+    version of that word.
+    '''
+    word = word.strip()
+    punctuations = '\'!()[]{};:"\,<>./?@#$%^&*_~'
+    clean_word = ""
+    for c in word:
+        if c not in punctuations:
+            clean_word += c
+    return clean_word.lower()
+
 def cleanUp(word):
     '''
     Removes punctuation from the word given in the parameter, and returns the lowercase
