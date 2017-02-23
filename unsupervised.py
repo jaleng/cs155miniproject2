@@ -97,14 +97,17 @@ def test_unsupervised_py():
     # print lines_ids[100:106]
     
 if __name__ == "__main__":
-    if (len(sys.argv) != 4):
+    if (len(sys.argv) != 5):
         print(len(sys.argv))
-        print("usage: python unsupervised.py save_file n_states n_iters")
-        print("ex:    python unsupervised.py um_all_nstates10_niters1000.pkl 10 1000")
+        print("usage: python unsupervised.py save_file n_states n_iters n_poems")
+        print("ex:    python unsupervised.py um_all_nstates10_niters1000.pkl 10 1000 5")
+        print("alternatively, save the generate poems to file:")
+        print("ex:    python unsupervised.py um_all_nstates10_niters1000.pkl 10 1000 5 > poems/s10i1000.txt")
         sys.exit(1)
     save_file = sys.argv[1]
     n_states = int(sys.argv[2])
     n_iters = int(sys.argv[3])
+    n_poems = int(sys.argv[4])
     model, word_to_id, id_to_word = (
     read_make_pkl("saved_objs/" + save_file,
                   lambda: make_unsupervised_model
@@ -115,8 +118,15 @@ if __name__ == "__main__":
     poem = generate_poem(model, id_to_word, words_per_line=8, n_lines=14)
 
     print ("*************************************")
-    print ("Generated Poem:**********************")
+    print ("Generated Poems")
+    print ("model file: " + save_file)
+    print ("n_poems = " + str(n_poems))
     print ("*************************************")
-    for line in poem:
-        print line
+    for n_poem in range(n_poems):
+        poem = generate_poem(model, id_to_word, words_per_line=8, n_lines=14)
+        print("\t\t" + str(n_poem + 1))
+        for line in poem:
+            print line
+        print("\n\n")
+
 
