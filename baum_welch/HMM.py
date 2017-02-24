@@ -52,6 +52,8 @@ class HiddenMarkovModel:
         self.A = A
         self.O = O
         self.A_start = [1. / self.L for _ in range(self.L)]
+        self.state = random.choice(range(self.L))
+        self.prev = [[0 for _ in range(14)] for _ in range(14)]
 
 
     def forward(self, x, normalize=False):
@@ -173,7 +175,6 @@ class HiddenMarkovModel:
                     betas[t - 1][curr] /= norm
 
         return betas
-
     def unsupervised_learning(self, X, iters):
         '''
         Trains the HMM using the Baum-Welch algorithm on an unlabeled
@@ -273,7 +274,6 @@ class HiddenMarkovModel:
         '''
 
         emission = ''
-        state = random.choice(range(self.L))
 
         for t in range(M):
             # Sample next observation.
@@ -281,7 +281,7 @@ class HiddenMarkovModel:
             next_obs = 0
 
             while rand_var > 0:
-                rand_var -= self.O[state][next_obs]
+                rand_var -= self.O[self.state][next_obs]
                 next_obs += 1
 
             next_obs -= 1
@@ -292,15 +292,16 @@ class HiddenMarkovModel:
             next_state = 0
 
             while rand_var > 0:
-                rand_var -= self.A[state][next_state]
+                rand_var -= self.A[self.state][next_state]
                 next_state += 1
 
             next_state -= 1
-            state = next_state
+            # self.prev = self.sate
+            self.state = next_state
 
         return emission
 
-    def generate_emission_list(self, M):
+    def generate_emission_list(self, M, reset, line, element):
         '''
         Generates an emission of length M, assuming that the starting state
         is chosen uniformly at random. 
@@ -312,16 +313,16 @@ class HiddenMarkovModel:
             emission:   The randomly generated emission as a list.
         '''
 
+        if reset:
+            self.state = self.prev[line][element]
         emission = []
-        state = random.choice(range(self.L))
-
         for t in range(M):
             # Sample next observation.
             rand_var = random.uniform(0, 1)
             next_obs = 0
 
             while rand_var > 0:
-                rand_var -= self.O[state][next_obs]
+                rand_var -= self.O[self.state][next_obs]
                 next_obs += 1
 
             next_obs -= 1
@@ -332,13 +333,41 @@ class HiddenMarkovModel:
             next_state = 0
 
             while rand_var > 0:
-                rand_var -= self.A[state][next_state]
+                rand_var -= self.A[self.state][next_state]
                 next_state += 1
 
             next_state -= 1
-            state = next_state
+            self.prev[line][element] = self.state
+            self.state = next_state
 
         return emission
+
+    def generate_emission_list_start(self, start, line, element):
+        '''
+        Generates an emission of length M, assuming that the starting state
+        is chosen uniformly at random. 
+
+        Arguments:
+            M:          Length of the emission to generate.
+
+        Returns:
+            emission:   The randomly generated emission as a list.
+        '''
+
+        
+            # Sample next state.
+        self.state = start
+        rand_var = random.uniform(0, 1)
+        next_state = 0
+
+        while rand_var > 0:
+            rand_var -= self.A[self.state][next_state]
+            next_state += 1
+
+        next_state -= 1
+        self.prev[line][element] = self.state
+        self.state = next_state
+        return
 
 def unsupervised_HMM(X, n_states, n_iters):
     '''
