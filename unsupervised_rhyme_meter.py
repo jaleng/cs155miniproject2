@@ -37,9 +37,9 @@ def WordToStress(word):
     '''
     stress = ""
     word = cleanUp(word)
-
+    # print word
     zero = True
-    for x in prondict[word]:
+    for x in prondict[word[0]]:
         if isAlternating(justStress(x)):
             stress += justStress(x)
     stress_dictionary[word] = stress
@@ -213,11 +213,12 @@ def generate_rhyming_poem(model, ids_to_words, word_to_id):
     '''
     rhyme = RhymingPair(4)
     # for x in rhyme:
-    #     pos(x)
+        # print x
+        # WordToStress(x)
     lines = []
     tails = []
     for line_idx in range(14):
-        print "Line ", line_idx
+        print "Line ", line_idx+1
         line_ids = []
         index = 0
         line_ids += [word_to_id[rhyme[line_idx]]]
@@ -306,7 +307,7 @@ def generate_rhyming_poem(model, ids_to_words, word_to_id):
 if __name__ == "__main__":
     model, word_to_id, id_to_word = (
     read_make_pkl("saved_objs/um_shakespeare_nstates30_niters750.pkl",
-                  lambda: Rhyme_make_unsupervised_model("data/shakespeare.txt", 25, 1000))
+                  lambda: Rhyme_make_unsupervised_model("data/shakespeare_plus_spenser.txt", 25, 1000))
         )
     poem = generate_rhyming_poem(model, id_to_word, word_to_id)
 
@@ -335,8 +336,8 @@ if __name__ == "__main__":
             print " Line ", counter, ": ",
         for x in line.split():
             try: 
-                print stress_dictionary[x] + " ",
-                lst += stress_dictionary[x]
+                print stress_dictionary[x.lower()] + " ",
+                lst += stress_dictionary[x.lower()]
             except:
                 print "  ",
         print "\t: SUM -> ", len(lst)
