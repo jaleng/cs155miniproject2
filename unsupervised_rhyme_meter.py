@@ -4,6 +4,7 @@ from pkl_help import *
 import nltk
 import random
 from nltk.corpus import cmudict
+import sys
 # import poetrytools
 
 prondict = cmudict.dict()
@@ -177,8 +178,10 @@ def RhymingPair(min_number):
             b = random.choice(rhyme_dictionary[x])
             try:
                 if(stress_dictionary[a][0] == "0"):
-                    a = b
-                    continue
+                    while True:
+                        x = random.choice(rhyme_dictionary.keys())
+                        if len(rhyme_dictionary[x]) >= min_number:
+                            break
             except:
                 while True:
                         x = random.choice(rhyme_dictionary.keys())
@@ -230,7 +233,7 @@ def generate_rhyming_poem(model, ids_to_words, word_to_id):
         while True:
             # Incase we get stuck in a bad state - start from rhyme word.
             if counter == 100:
-                index = 2
+                index = 1
                 backtrace = True
                 line_ids = [line_ids[0]]
                 print "restarting this line"
@@ -267,6 +270,13 @@ def generate_rhyming_poem(model, ids_to_words, word_to_id):
                         index -= 3
                         backtrace = True
                         continue
+                    elif (index > 2):
+                        del line_ids[-1]
+                        del line_ids[-1]
+                        index -= 2
+                        backtrace = True
+                        continue
+
             # If end of the current word matches the stress of the last of the previous word
             # get ride of this word and resample
             if(stress_dictionary[id_to_word[line_ids[-1]]][-1] == stress):
@@ -278,7 +288,7 @@ def generate_rhyming_poem(model, ids_to_words, word_to_id):
             if (syl_so_far(line_ids, word_to_id, ids_to_words) == 10):
                 if(stress_dictionary[id_to_word[line_ids[-1]]][0] == "0"):
                     break
-                else:
+                elif (index > 4):
                     del line_ids[-1]
                     del line_ids[-1]
                     del line_ids[-1]
@@ -287,12 +297,19 @@ def generate_rhyming_poem(model, ids_to_words, word_to_id):
                     continue
             # If we have more than 10 syl, ditch the last 3 words and re sample
             if (syl_so_far(line_ids, word_to_id, ids_to_words) >= 10):
-                del line_ids[-1]
-                del line_ids[-1]
-                del line_ids[-1]
-                backtrace = True
-                index -= 3
-                continue
+                if(index > 4):
+                    del line_ids[-1]
+                    del line_ids[-1]
+                    del line_ids[-1]
+                    index -= 3
+                    backtrace = True
+                    continue
+                elif (index > 2):
+                        del line_ids[-1]
+                        del line_ids[-1]
+                        index -= 2
+                        backtrace = True
+                        continue
             backtrace = False
 
         # reverse the words since we trained backwards
@@ -305,40 +322,56 @@ def generate_rhyming_poem(model, ids_to_words, word_to_id):
     return lines
     
 if __name__ == "__main__":
+    if (len(sys.argv) != 5):
+        print(len(sys.argv))
+        print("usage: python unsupervised.py save_file n_states n_iters n_poems")
+        print("ex:    python unsupervised.py um_all_nstates10_niters1000.pkl 10 1000 5")
+        print("alternatively, save the generate poems to file:")
+        print("ex:    python unsupervised.py saved_objs/um_all_nstates10_niters1000.pkl 10 1000 5 > poems/s10i1000.txt")
+        sys.exit(1)
+    save_file = sys.argv[1]
+    n_states = int(sys.argv[2])
+    n_iters = int(sys.argv[3])
+    n_poems = int(sys.argv[4])
+    print save_file
     model, word_to_id, id_to_word = (
-    read_make_pkl("saved_objs/um_shakespeare_nstates30_niters750.pkl",
-                  lambda: Rhyme_make_unsupervised_model("data/shakespeare_plus_spenser.txt", 25, 1000))
+    read_make_pkl(save_file,
+                  lambda: Rhyme_make_unsupervised_model("data/shakespeare_plus_spenser.txt", n_states, n_iters))
         )
-    poem = generate_rhyming_poem(model, id_to_word, word_to_id)
+    
 
-    print ("*************************************")
-    print ("Generated Poem:**********************")
-    print ("*************************************")
-    counter = 0
+    # print ("*************************************")
+    # print ("Generated Poem:**********************")
+    # print ("*************************************")
+
     # Alternates commas and periods for punctuation...
     # Could probably do better....
     # If we could use a little supervised learning we could do this with Naive Bayes
     #               P(Punctuation|word) and sample, include nothing as an option (most common)
-    for line in poem:
-        if counter % 2 == 0:
-            print line + ","
-        else:
-            print line.capitalize().replace(" i ", " I ") + "."
-        counter += 1
+    for n_poem in range(n_poems):
+        print("\t\t" + str(n_poem + 1))
+        counter = 0
+        poem = generate_rhyming_poem(model, id_to_word, word_to_id)
+        for line in poem:
+            if counter % 2 == 0:
+                print line + ","
+            else:
+                print line.capitalize().replace(" i ", " I ") + "."
+            counter += 1
     # Prints syl stresses
-    print "      -----------------------------------------------------------------"
-    counter = 1
-    for line in poem:
-        lst = ""
-        if counter < 10:
-            print " Line  ", counter, ": ",
-        else:
-            print " Line ", counter, ": ",
-        for x in line.split():
-            try: 
-                print stress_dictionary[x.lower()] + " ",
-                lst += stress_dictionary[x.lower()]
-            except:
-                print "  ",
-        print "\t: SUM -> ", len(lst)
-        counter += 1
+    # print "      -----------------------------------------------------------------"
+    # counter = 1
+    # for line in poem:
+    #     lst = ""
+    #     if counter < 10:
+    #         print " Line  ", counter, ": ",
+    #     else:
+    #         print " Line ", counter, ": ",
+    #     for x in line.split():
+    #         try: 
+    #             print stress_dictionary[x.lower()] + " ",
+    #             lst += stress_dictionary[x.lower()]
+    #         except:
+    #             print "  ",
+    #     print "\t: SUM -> ", len(lst)
+    #     counter += 1
