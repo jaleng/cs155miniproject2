@@ -221,7 +221,7 @@ def generate_rhyming_poem(model, ids_to_words, word_to_id):
     lines = []
     tails = []
     for line_idx in range(14):
-        print "Line ", line_idx+1
+        # print "Line ", line_idx+1
         line_ids = []
         index = 0
         line_ids += [word_to_id[rhyme[line_idx]]]
@@ -229,16 +229,18 @@ def generate_rhyming_poem(model, ids_to_words, word_to_id):
         index += 1
         stress = ""
         backtrace = False
-        counter = 0
+        counter = 1
         while True:
             # Incase we get stuck in a bad state - start from rhyme word.
-            if counter == 100:
+            if counter % 100 == 0:
                 index = 1
                 backtrace = True
                 line_ids = [line_ids[0]]
-                print "restarting this line"
-                counter = 0
+                # print "restarting this line, counter = ", counter
+                counter +=1
                 continue
+            if counter >= 1000:
+                return ""
             counter += 1
             # Get previous words first syl
             try:
@@ -351,7 +353,13 @@ if __name__ == "__main__":
     for n_poem in range(n_poems):
         print("\t\t" + str(n_poem + 1))
         counter = 0
-        poem = generate_rhyming_poem(model, id_to_word, word_to_id)
+        poem = [] 
+        while True:
+            poem = generate_rhyming_poem(model, id_to_word, word_to_id)
+            if poem == "":
+                continue
+            else:
+                break
         for line in poem:
             if counter % 2 == 0:
                 print line + ","
