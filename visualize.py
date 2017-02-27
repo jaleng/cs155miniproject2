@@ -55,32 +55,37 @@ def make_graph(model, states):
 def draw_graph(dg, filename):
     labels = nx.get_edge_attributes(dg, 'weight')
     for key, value in labels.items():
-        new_val = '{:2.2f}'.format(value)
-        if new_val == '0.00':
-            new_val = '0'
+        new_val = '{:.2g}'.format(value)
+        # if new_val == '0.0000':
+        #     new_val = '0'
         labels[key] = new_val
     #print("labels: " + str(labels))
-    pos = nx.spring_layout(dg)
-    nx.draw_networkx_nodes(dg, pos=pos, alpha=0.5)
-    nx.draw_networkx_labels(dg, pos=pos, alpha=0.5, font_size=20)
+    pos = nx.circular_layout(dg)
+    nx.draw_networkx_nodes(dg, pos=pos, alpha=0.3)
+    nx.draw_networkx_labels(dg, pos=pos, alpha=0.3, font_size=20)
     for edge, weight in labels.items():
-        nx.draw_networkx_edges(dg, pos=pos, edgelist=[edge], width=10*float(weight))
+        nx.draw_networkx_edges(dg, pos=pos, edgelist=[edge], width=10.*float(weight),
+                               arrows=False)
     #nx.draw_networkx_edges(dg, pos=pos, alpha=0.5)
     nx.draw_networkx_edge_labels(dg, pos=pos, edge_labels=labels,
-                                 alpha=1., label_pos=0.25)
+                                 font_size=8, alpha=1., label_pos=0.75)
     plt.savefig(filename)
     plt.show()
 
 if __name__ == "__main__":
     model, word_to_id, id_to_word = (
-        get_pkl("saved_objs/um_all_nstates20_niters1000.pkl")
+        get_pkl("saved_objs/um_shakespeare_nstates6_niters10000.pkl")
         )
-    imp_states = find_important_states(model, 5)
+    imp_states = find_important_states(model, 6)
     print ("imp_states: " + str(imp_states))
     for state in imp_states:
         print ("words for state "
                + str(state) + ": "
-               + str(find_state_imp_words(model, state, id_to_word, 5)))
-    draw_graph(make_graph(model, imp_states), "graphs/test.pdf")
+               + reduce(lambda a,b: str(a) + ', ' + str(b),
+                        find_state_imp_words(model, state, id_to_word, 10),
+                        '')
+               #+ str(find_state_imp_words(model, state, id_to_word, 10)))
+               )
+    draw_graph(make_graph(model, imp_states), "graphs/s6_i10000.png")
      
     
